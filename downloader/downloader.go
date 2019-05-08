@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	photoslibrary "google.golang.org/api/photoslibrary/v1"
 )
 

@@ -19,7 +19,7 @@ import (
 )
 
 //Version is the version number
-const Version = "0.21"
+const Version = "0.22"
 
 var options struct {
 	loop         bool
@@ -95,7 +95,7 @@ func process() error {
 	log.Printf("Connecting ...")
 	srv, err := photoslibrary.New(client)
 	if err != nil {
-		return fmt.Errorf("Unable to retrieve Sheets client: %v", err)
+		return fmt.Errorf("Unable to retrieve client: %v", err)
 	}
 	for true {
 		err := downloader.DownloadAll(srv)
