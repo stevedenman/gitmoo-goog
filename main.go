@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dtylman/gitmoo-goog/downloader"
+	"github.com/stevedenman/gitmoo-goog/downloader"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
