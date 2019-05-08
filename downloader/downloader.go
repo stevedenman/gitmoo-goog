@@ -20,13 +20,13 @@ import (
 
 //Options defines downloader options
 var Options struct {
-	//BackupFolderis the backup folder
+	//BackupFolder is the backup folder
 	BackupFolder string
 	//MaxItems how many items to download
 	MaxItems int
 	//number of items to download on per API call
 	PageSize int
-	//Throtthle is time to wait between API calls
+	//Throttle is time to wait between API calls
 	Throttle int
 	//Google photos AlbumID
 	AlbumID string
@@ -85,7 +85,14 @@ func createJSON(item *photoslibrary.MediaItem, fileName string) error {
 func createImage(item *photoslibrary.MediaItem, fileName string) error {
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
-		url := fmt.Sprintf("%v=w%v-h%v", item.BaseUrl, item.MediaMetadata.Width, item.MediaMetadata.Height)
+		url := ""
+		if item.MediaMetadata.Video != nil {
+			// https://issuetracker.google.com/issues/80149160#comment1
+			url = fmt.Sprintf("%v=dv", item.BaseUrl)
+		} else {
+			url = fmt.Sprintf("%v=d", item.BaseUrl)
+		}
+
 		output, err := os.Create(fileName)
 		if err != nil {
 			return err
@@ -125,6 +132,19 @@ func downloadItem(svc *photoslibrary.Service, item *photoslibrary.MediaItem) err
 	}
 
 	return createImage(item, imageName)
+}
+
+//ListAlbums list albums
+func ListAlbums(svc *photoslibrary.Service) error {
+	// req := &photoslibrary.AlbumsListCall{}
+	resp, err := svc.Albums.List().Do()
+	if err != nil {
+		return err
+	}
+	for _, a := range resp.Albums {
+		log.Printf("album %v: %v", a.Id, a.Title)
+	}
+	return nil
 }
 
 //DownloadAll downloads all files
