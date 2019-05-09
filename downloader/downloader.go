@@ -83,38 +83,55 @@ func createJSON(item *photoslibrary.MediaItem, fileName string) error {
 }
 
 func createImage(item *photoslibrary.MediaItem, fileName string) error {
-	_, err := os.Stat(fileName)
-	if os.IsNotExist(err) {
-		url := ""
-		if item.MediaMetadata.Video != nil {
-			// https://issuetracker.google.com/issues/80149160#comment1
-			url = fmt.Sprintf("%v=dv", item.BaseUrl)
-		} else {
-			url = fmt.Sprintf("%v=d", item.BaseUrl)
-		}
 
-		output, err := os.Create(fileName)
-		if err != nil {
-			return err
-		}
-		defer output.Close()
-
-		response, err := http.Get(url)
-		if err != nil {
-			return err
-		}
-		defer response.Body.Close()
-
-		n, err := io.Copy(output, response.Body)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("Downloaded '%v' (%v)", fileName, humanize.Bytes(uint64(n)))
-		stats.downloaded++
-		stats.totalsize += uint64(n)
-		return nil
+	url := ""
+	if item.MediaMetadata.Video != nil {
+		// https://issuetracker.google.com/issues/80149160#comment1
+		url = fmt.Sprintf("%v=dv", item.BaseUrl)
+	} else {
+		url = fmt.Sprintf("%v=d", item.BaseUrl)
 	}
+
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := os.Stat(fileName)
+	if fileInfo != nil {
+		// file exists - check size
+		size := response.ContentLength
+		if size == fileInfo.Size() {
+			log.Println("File already downloaded")
+			return nil
+		}
+
+		log.Printf("File size has changed - will download")
+	} else if err != nil && !os.IsNotExist(err) {
+		log.Println("Error when checking if output file exists. Permissions?")
+		return err
+	} else {
+		log.Println("File not yet downloaded - will download")
+	}
+
+	//	Create() truncates existing files
+	output, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	defer response.Body.Close()
+
+	n, err := io.Copy(output, response.Body)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Downloaded '%v' (%v)", fileName, humanize.Bytes(uint64(n)))
+	stats.downloaded++
+	stats.totalsize += uint64(n)
+
 	return nil
 }
 
