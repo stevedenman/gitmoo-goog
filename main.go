@@ -15,11 +15,11 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	photoslibrary "google.golang.org/api/photoslibrary/v1"
-	"gopkg.in/natefinch/lumberjack.v2"
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
 
 //Version is the version number
-const Version = "0.22"
+const Version = "0.23"
 
 var options struct {
 	loop         bool
