@@ -66,20 +66,30 @@ func getFileName(item *photoslibrary.MediaItem) string {
 }
 
 func createJSON(item *photoslibrary.MediaItem, fileName string) error {
-	_, err := os.Stat(fileName)
-	if os.IsNotExist(err) {
-		log.Printf("Creating '%v' ", fileName)
-		bytes, err := item.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		err = os.MkdirAll(filepath.Dir(fileName), 0700)
-		if err != nil {
-			return err
-		}
-		return ioutil.WriteFile(fileName, bytes, 0644)
+
+	bytes, err := item.MarshalJSON()
+	if err != nil {
+		return err
 	}
-	return nil
+
+	fileInfo, err := os.Stat(fileName)
+	if fileInfo != nil {
+		if int64(len(bytes)) == fileInfo.Size() {
+			return nil
+		}
+	} else if !os.IsNotExist(err) {
+		log.Println("Error when checking if json file exists. Permissions?")
+		return nil
+	}
+
+	log.Printf("Creating '%v' ", fileName)
+
+	err = os.MkdirAll(filepath.Dir(fileName), 0700)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(fileName, bytes, 0644)
+
 }
 
 func createImage(item *photoslibrary.MediaItem, fileName string) error {
